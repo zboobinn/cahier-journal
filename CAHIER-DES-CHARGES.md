@@ -153,7 +153,7 @@ Récréation 15:15-15:30
 5. **Simple / double niveau** : bascule qui masque/affiche la 2ᵉ colonne. Libellés de niveau modifiables (ex. GS/CP).
 6. **Paramètres** (panneau latéral) : couleur de chaque jour (fond + accent), édition des horaires (ajout/suppression/renommage de créneaux, marquage récré/pause), libellés de niveau, infos école.
 7. **Mercredi** : pas de grille, seulement une grande zone de **notes** (préparation, réunions…).
-8. **Modèles par jour** : bouton « Enregistrer comme modèle du {jour} » (copie le contenu courant dans `templates[jour]`) et « Charger le modèle du {jour} ».
+8. **Modèles par jour** : bouton « Enregistrer comme modèle du {jour} » (copie le contenu courant dans `templates[jour]`) et « Charger le modèle du {jour} ». 
 9. **Notes** du jour sous la grille.
 10. **Impression** : bouton qui déclenche `window.print()`. En portrait A4, l'interface (barre d'outils, panneau) est masquée. Si tout ne tient pas sur une page, autoriser la coupure naturelle ; prévoir une **option « recto = matin / verso = après-midi »** (saut de page avant l'après-midi).
 11. **Export / Import** JSON (§7).
