@@ -39,42 +39,53 @@ export default function JournalSheet({
         <p className="prefill-hint">Pré-rempli depuis le modèle du {weekday}.</p>
       )}
 
-      <div className="levels">
-        <div className="spacer"></div>
-        <input
-          className="level-h"
-          value={levelLabels.n1}
-          onChange={(e) => onLevelLabelChange('n1', e.target.value)}
-          aria-label="Nom du niveau 1"
+      {weekday === 'mercredi' ? (
+        <NotesPanel
+          title="Notes du mercredi"
+          notes={notes}
+          onNotesChange={onNotesChange}
+          large
         />
-        <input
-          className="level-h lvl2 n2head"
-          value={levelLabels.n2}
-          onChange={(e) => onLevelLabelChange('n2', e.target.value)}
-          aria-label="Nom du niveau 2"
-        />
-        <div className="spacer"></div>
-      </div>
+      ) : (
+        <>
+          <div className="levels">
+            <div className="spacer"></div>
+            <input
+              className="level-h"
+              value={levelLabels.n1}
+              onChange={(e) => onLevelLabelChange('n1', e.target.value)}
+              aria-label="Nom du niveau 1"
+            />
+            <input
+              className="level-h lvl2 n2head"
+              value={levelLabels.n2}
+              onChange={(e) => onLevelLabelChange('n2', e.target.value)}
+              aria-label="Nom du niveau 2"
+            />
+            <div className="spacer"></div>
+          </div>
 
-      <table>
-        <colgroup>
-          <col className="hour" />
-          <col />
-          <col className="lvl2" />
-          <col className="hour" />
-        </colgroup>
-        <tbody>
-          {hours.map((h) =>
-            h.kind === 'break' ? (
-              <BandRow key={h.id} hour={h} />
-            ) : (
-              <HourRow key={h.id} hour={h} data={rows[h.id]} onCellChange={onCellChange} />
-            ),
-          )}
-        </tbody>
-      </table>
+          <table>
+            <colgroup>
+              <col className="hour" />
+              <col />
+              <col className="lvl2" />
+              <col className="hour" />
+            </colgroup>
+            <tbody>
+              {hours.map((h) =>
+                h.kind === 'break' ? (
+                  <BandRow key={h.id} hour={h} />
+                ) : (
+                  <HourRow key={h.id} hour={h} data={rows[h.id]} onCellChange={onCellChange} />
+                ),
+              )}
+            </tbody>
+          </table>
 
-      <NotesPanel title="Notes" notes={notes} onNotesChange={onNotesChange} />
+          <NotesPanel title="Notes" notes={notes} onNotesChange={onNotesChange} />
+        </>
+      )}
     </div>
   )
 }

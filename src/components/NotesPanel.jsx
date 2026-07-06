@@ -1,6 +1,6 @@
-export default function NotesPanel({ title, notes, onNotesChange }) {
+export default function NotesPanel({ title, notes, onNotesChange, large }) {
   return (
-    <div className="notes">
+    <div className={`notes${large ? ' large' : ''}`}>
       <h3>{title}</h3>
       <textarea
         value={notes}

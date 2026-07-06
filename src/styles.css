@@ -433,6 +433,10 @@ td {
   font-style: italic;
 }
 
+.notes.large textarea {
+  min-height: 360px;
+}
+
 .hint {
   max-width: 900px;
   margin: 14px auto 0;

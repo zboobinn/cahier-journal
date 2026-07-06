@@ -156,7 +156,8 @@ function App() {
   }
 
   function handleSaveTemplate() {
-    const updated = { ...templates, [weekday]: { rows, notes } }
+    const templateData = weekday === 'mercredi' ? { notes } : { rows, notes }
+    const updated = { ...templates, [weekday]: templateData }
     setTemplates(updated)
     saveTemplates(updated)
   }
@@ -167,7 +168,8 @@ function App() {
       window.alert(`Aucun modèle enregistré pour ${dayLabel}.`)
       return
     }
-    if (hasContent(rows, notes)) {
+    const currentHasContent = weekday === 'mercredi' ? Boolean(notes.trim()) : hasContent(rows, notes)
+    if (currentHasContent) {
       const ok = window.confirm(
         `Écraser le contenu actuel du ${dayLabel} avec le modèle enregistré ?`,
       )
