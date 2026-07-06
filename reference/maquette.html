@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cahier journal — maquette</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&family=Nunito:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FBFAF7; --ink:#2B2A28; --muted:#8A857C;
+    --line:#E2DCD1; --line-strong:#C9C1B2;
+    --day-bg:#ECE4F7; --day-accent:#7C5CBF; --day-ink:#4B3B7A;
+    --radius:14px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:#F0EDE6;color:var(--ink);font-family:"Nunito",system-ui,sans-serif}
+  body{padding:24px}
+
+  /* ---------- Barre d'outils ---------- */
+  .toolbar{max-width:900px;margin:0 auto 20px;background:#fff;border:1px solid var(--line);
+    border-radius:var(--radius);padding:14px 16px;display:flex;flex-wrap:wrap;gap:14px 18px;
+    align-items:center;box-shadow:0 6px 20px rgba(60,50,30,.06)}
+  .toolbar .group{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .toolbar label.cap{font-size:.8rem;color:var(--muted);font-weight:700;letter-spacing:.02em}
+  .days{display:flex;gap:6px}
+  .day-chip{font-family:"Quicksand",sans-serif;font-weight:600;border:1.5px solid transparent;
+    background:var(--chip-bg);color:var(--chip-ink);padding:7px 12px;border-radius:999px;cursor:pointer;
+    font-size:.85rem;transition:transform .08s,box-shadow .12s}
+  .day-chip[aria-pressed="true"]{box-shadow:0 0 0 2px #fff,0 0 0 4px var(--chip-ink);transform:translateY(-1px)}
+  .day-chip:focus-visible{outline:3px solid #3E7CB1;outline-offset:2px}
+  input[type="date"]{border:1px solid var(--line-strong);border-radius:9px;padding:6px 9px;font:inherit;color:var(--ink)}
+  .switch{display:inline-flex;align-items:center;gap:8px;cursor:pointer;user-select:none;font-size:.85rem}
+  .switch input{position:absolute;opacity:0}
+  .track{width:42px;height:24px;background:#D9D3C7;border-radius:999px;position:relative;transition:background .15s}
+  .track::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;background:#fff;border-radius:50%;transition:left .15s;box-shadow:0 1px 2px rgba(0,0,0,.3)}
+  .switch input:checked + .track{background:var(--day-accent)}
+  .switch input:checked + .track::after{left:21px}
+  .btn{font-family:"Quicksand",sans-serif;font-weight:600;font-size:.85rem;cursor:pointer;
+    border:1px solid var(--line-strong);background:#fff;color:var(--ink);padding:8px 14px;border-radius:10px;transition:background .12s}
+  .btn:hover{background:#F6F3EC}
+  .btn.primary{background:var(--day-accent);border-color:var(--day-accent);color:#fff}
+  .btn.primary:hover{filter:brightness(1.05)}
+  .btn:focus-visible{outline:3px solid #3E7CB1;outline-offset:2px}
+
+  /* ---------- Feuille ---------- */
+  .sheet{max-width:900px;margin:0 auto;background:var(--paper);border:1px solid var(--line);
+    border-radius:var(--radius);padding:26px 28px 30px;box-shadow:0 10px 30px rgba(60,50,30,.08)}
+  .sheet-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:18px}
+  .school{font-size:.72rem;color:var(--muted);font-weight:600;line-height:1.4}
+  .titleband{flex:1;background:var(--day-bg);border:1.5px solid var(--day-accent);border-radius:12px;padding:12px 18px;text-align:center}
+  .titleband .dow{font-family:"Quicksand",sans-serif;font-weight:700;font-size:1.45rem;color:var(--day-ink);text-transform:capitalize;line-height:1.1}
+  .titleband .full-date{font-size:.85rem;color:var(--day-ink);opacity:.85;margin-top:2px}
+
+  .levels{display:grid;grid-template-columns:64px 1fr 1fr 64px;border:1px solid var(--line-strong);
+    border-bottom:none;border-radius:10px 10px 0 0;overflow:hidden}
+  .levels .spacer{background:#F3F0E8}
+  .level-h{background:var(--day-bg);color:var(--day-ink);font-family:"Quicksand",sans-serif;font-weight:700;
+    text-align:center;padding:9px;border-left:1px solid var(--line-strong);outline:none}
+
+  table{width:100%;border-collapse:collapse;table-layout:fixed}
+  col.hour{width:64px}
+  td{border:1px solid var(--line-strong);vertical-align:top}
+  .hour-cell{background:#F3F0E8;text-align:center;font-family:"Quicksand",sans-serif;font-weight:600;
+    font-size:.72rem;color:#6C6558;padding:6px 2px;line-height:1.25;vertical-align:middle}
+  .hour-cell [contenteditable]{outline:none}
+  .teach{padding:0}
+  .cell{padding:8px 10px;min-height:80px;display:flex;flex-direction:column;gap:5px}
+  .matiere{font-family:"Quicksand",sans-serif;font-weight:700;font-size:.95rem;text-align:center;
+    color:var(--ink);border-bottom:1px solid var(--line);padding-bottom:4px;min-height:1.25em;outline:none}
+  .matiere:empty::before{content:"Matière";color:#C6C0B4;font-style:italic}
+  .field{display:flex;gap:6px;align-items:baseline;font-size:.8rem;line-height:1.35}
+  .field .lbl{font-family:"Quicksand",sans-serif;font-weight:700;font-size:.66rem;color:var(--day-accent);
+    text-transform:uppercase;letter-spacing:.04em;flex:0 0 auto;padding-top:1px}
+  .field .val{flex:1;min-height:1.05em;outline:none;border-bottom:1px dotted transparent}
+  .field .val:focus{border-bottom-color:var(--day-accent);background:#FFFDF7}
+
+  /* bandeau récré / pause : centré dans la case */
+  .band td{background:var(--day-bg);color:var(--day-ink);text-align:center;vertical-align:middle;height:44px;
+    font-family:"Quicksand",sans-serif;font-weight:700;letter-spacing:.06em;padding:8px;font-size:.85rem;text-transform:uppercase}
+
+  body.single .levels{grid-template-columns:64px 1fr 64px}
+  body.single .lvl2,body.single .n2head{display:none}
+
+  .notes{margin-top:16px;background:#fff;border:1px dashed var(--line-strong);border-radius:12px;padding:12px 14px}
+  .notes h3{margin:0 0 6px;font-family:"Quicksand",sans-serif;font-size:.8rem;color:var(--day-accent);text-transform:uppercase;letter-spacing:.05em}
+  .notes .val{min-height:44px;outline:none;font-size:.88rem}
+  .notes .val:empty::before{content:"Choses à faire, rappels…";color:#C6C0B4;font-style:italic}
+
+  /* mode mercredi : notes seules */
+  body.mercredi .levels,body.mercredi table{display:none}
+  body.mercredi .notes .val{min-height:360px}
+  body.mercredi #notes-title{}
+
+  .hint{max-width:900px;margin:14px auto 0;font-size:.78rem;color:var(--muted);text-align:center}
+
+  /* ---------- Panneau paramètres ---------- */
+  .drawer{position:fixed;top:0;right:0;height:100%;width:340px;max-width:90vw;background:#fff;
+    box-shadow:-8px 0 30px rgba(0,0,0,.14);transform:translateX(100%);transition:transform .22s ease;
+    z-index:50;overflow-y:auto;padding:20px}
+  .drawer.open{transform:translateX(0)}
+  .drawer h2{font-family:"Quicksand",sans-serif;margin:0 0 4px;font-size:1.1rem}
+  .drawer .close{position:absolute;top:14px;right:14px;border:none;background:#F1EDE5;border-radius:8px;width:30px;height:30px;cursor:pointer;font-size:1rem}
+  .drawer section{margin-top:20px;border-top:1px solid var(--line);padding-top:16px}
+  .drawer h4{font-family:"Quicksand",sans-serif;margin:0 0 10px;font-size:.9rem}
+  .color-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;font-size:.85rem}
+  .color-row span{flex:1}
+  .color-row input[type="color"]{width:34px;height:28px;border:1px solid var(--line-strong);border-radius:6px;padding:0;cursor:pointer;background:#fff}
+  .drawer textarea{width:100%;height:230px;font-family:ui-monospace,monospace;font-size:.78rem;
+    border:1px solid var(--line-strong);border-radius:8px;padding:8px;resize:vertical}
+  .drawer .lblinput{display:flex;gap:8px;margin-bottom:8px;align-items:center;font-size:.85rem}
+  .drawer .lblinput input[type="text"]{flex:1;border:1px solid var(--line-strong);border-radius:8px;padding:6px 8px;font:inherit}
+  .drawer .tip{font-size:.74rem;color:var(--muted);margin:6px 0 10px;line-height:1.4}
+  .backdrop{position:fixed;inset:0;background:rgba(30,25,15,.25);z-index:40;opacity:0;pointer-events:none;transition:opacity .2s}
+  .backdrop.show{opacity:1;pointer-events:auto}
+
+  @media (max-width:640px){ body{padding:12px} .sheet{padding:16px} .field{flex-wrap:wrap} }
+
+  @media print{
+    @page{size:A4 portrait;margin:12mm}
+    body{background:#fff;padding:0}
+    .toolbar,.hint,.drawer,.backdrop{display:none !important}
+    .sheet{box-shadow:none;border:none;border-radius:0;max-width:none;padding:0}
+  }
+</style>
+</head>
+<body class="double">
+
+  <div class="toolbar">
+    <div class="group"><label class="cap" for="date">Date</label><input type="date" id="date"></div>
+    <div class="group"><label class="cap">Jour</label>
+      <div class="days" role="group" aria-label="Jour de la semaine">
+        <button class="day-chip" data-day="lundi"    style="--chip-bg:#ECE4F7;--chip-ink:#7C5CBF">Lun</button>
+        <button class="day-chip" data-day="mardi"    style="--chip-bg:#DEEBF8;--chip-ink:#3E7CB1">Mar</button>
+        <button class="day-chip" data-day="mercredi" style="--chip-bg:#EFE9E2;--chip-ink:#8A7E6E">Mer</button>
+        <button class="day-chip" data-day="jeudi"    style="--chip-bg:#E2F1DE;--chip-ink:#5AA45C">Jeu</button>
+        <button class="day-chip" data-day="vendredi" style="--chip-bg:#FBF3D3;--chip-ink:#B79514">Ven</button>
+      </div>
+    </div>
+    <div class="group">
+      <label class="switch"><input type="checkbox" id="dbl" checked><span class="track"></span><span>Double niveau</span></label>
+    </div>
+    <div class="group" style="margin-left:auto">
+      <button class="btn" id="settings-btn">Paramètres</button>
+      <button class="btn" id="save">Enregistrer modèle</button>
+      <button class="btn" id="load">Charger modèle</button>
+      <button class="btn primary" id="print">Imprimer</button>
+    </div>
+  </div>
+
+  <div class="sheet">
+    <div class="sheet-head">
+      <div class="school">GS-CP · école Pierre Dumonteil<br>année scolaire 2025-2026</div>
+      <div class="titleband"><div class="dow" id="dow">Lundi</div><div class="full-date" id="fulldate">—</div></div>
+      <div class="school" style="text-align:right">Cahier<br>journal</div>
+    </div>
+
+    <div class="levels">
+      <div class="spacer"></div>
+      <div class="level-h" contenteditable="true" id="lvl1-head" data-k="niv1">Niveau 1</div>
+      <div class="level-h n2head" contenteditable="true" id="lvl2-head" data-k="niv2">Niveau 2</div>
+      <div class="spacer"></div>
+    </div>
+
+    <table>
+      <colgroup><col class="hour"><col><col class="lvl2"><col class="hour"></colgroup>
+      <tbody id="rows"></tbody>
+    </table>
+
+    <div class="notes">
+      <h3 id="notes-title">Notes</h3>
+      <div class="val" contenteditable="true" data-k="notes"></div>
+    </div>
+  </div>
+
+  <p class="hint">Maquette — clique dans n'importe quelle case pour écrire. « Paramètres » pour régler couleurs, horaires et niveaux.</p>
+
+  <!-- PANNEAU PARAMÈTRES -->
+  <div class="backdrop" id="backdrop"></div>
+  <aside class="drawer" id="drawer" aria-label="Paramètres">
+    <button class="close" id="close-drawer" aria-label="Fermer">✕</button>
+    <h2>Paramètres</h2>
+
+    <section>
+      <h4>Couleurs des jours</h4>
+      <div id="color-settings"></div>
+    </section>
+
+    <section>
+      <h4>Niveaux</h4>
+      <div class="lblinput"><label style="width:66px">Niveau 1</label><input type="text" id="set-lvl1" value="Niveau 1"></div>
+      <div class="lblinput"><label style="width:66px">Niveau 2</label><input type="text" id="set-lvl2" value="Niveau 2"></div>
+      <label class="switch"><input type="checkbox" id="set-dbl" checked><span class="track"></span><span>Double niveau</span></label>
+    </section>
+
+    <section>
+      <h4>Horaires</h4>
+      <p class="tip">Une ligne = un créneau. Préfixe <b>R</b> pour une récréation, <b>P</b> pour la pause méridienne. Puis « Appliquer ».</p>
+      <textarea id="set-hours"></textarea>
+      <button class="btn primary" id="apply-hours" style="margin-top:8px;width:100%">Appliquer les horaires</button>
+    </section>
+  </aside>
+
+<script>
+  const DEFAULT_HOURS =
+`8:30-9:00
+9:00-9:30
+9:30-9:50
+9:50-10:15
+R 10:15-10:50
+10:50-11:25
+P 11:25-13:30
+13:30-14:00
+14:00-14:40
+14:40-15:15
+R 15:15-15:30
+15:30-15:50
+15:50-16:20`;
+
+  const THEME = {
+    lundi:    {bg:"#ECE4F7",accent:"#7C5CBF",ink:"#4B3B7A",label:"Lundi"},
+    mardi:    {bg:"#DEEBF8",accent:"#3E7CB1",ink:"#26506E",label:"Mardi"},
+    mercredi: {bg:"#EFE9E2",accent:"#8A7E6E",ink:"#5E564A",label:"Mercredi"},
+    jeudi:    {bg:"#E2F1DE",accent:"#5AA45C",ink:"#356A37",label:"Jeudi"},
+    vendredi: {bg:"#FBF3D3",accent:"#B79514",ink:"#7C6A12",label:"Vendredi"},
+  };
+
+  // ---- Génération du tableau ----
+  function parseHours(text){
+    return text.split("\n").map(l=>l.trim()).filter(Boolean).map(l=>{
+      let band=null, rest=l;
+      let m=l.match(/^R\s+(.*)/i); if(m){band="Récréation";rest=m[1];}
+      let p=l.match(/^P\s+(.*)/i); if(p){band="Pause méridienne";rest=p[1];}
+      const h=rest.replace(/\s*-\s*/,"\n");
+      return band?{band,h}:{h};
+    });
+  }
+  function cell(side,uid){
+    return `<div class="cell">
+      <div class="matiere" contenteditable="true" data-k="mat-${side}-${uid}"></div>
+      <div class="field"><span class="lbl">Objectif</span><div class="val" contenteditable="true" data-k="obj-${side}-${uid}"></div></div>
+      <div class="field"><span class="lbl">Matériel</span><div class="val" contenteditable="true" data-k="mate-${side}-${uid}"></div></div>
+    </div>`;
+  }
+  function renderRows(rows){
+    const rowsEl=document.getElementById("rows"); rowsEl.innerHTML="";
+    rows.forEach((r,i)=>{
+      const tr=document.createElement("tr");
+      const hh=r.h.replace("\n","<br>");
+      if(r.band){
+        tr.className="band";
+        tr.innerHTML=`<td class="hour-cell">${hh}</td><td colspan="2">${r.band}</td><td class="hour-cell">${hh}</td>`;
+      }else{
+        tr.innerHTML=`<td class="hour-cell"><div contenteditable="true">${hh}</div></td>
+          <td class="teach">${cell("1",i)}</td>
+          <td class="teach lvl2">${cell("2",i)}</td>
+          <td class="hour-cell"><div contenteditable="true">${hh}</div></td>`;
+      }
+      rowsEl.appendChild(tr);
+    });
+  }
+  renderRows(parseHours(DEFAULT_HOURS));
+
+  // ---- Thème / jour ----
+  function applyTheme(t){
+    const s=document.documentElement.style;
+    s.setProperty("--day-bg",t.bg); s.setProperty("--day-accent",t.accent); s.setProperty("--day-ink",t.ink);
+  }
+  function setDay(day){
+    const t=THEME[day]; if(!t) return;
+    applyTheme(t);
+    document.getElementById("dow").textContent=t.label;
+    document.body.classList.toggle("mercredi",day==="mercredi");
+    document.getElementById("notes-title").textContent = day==="mercredi" ? "Notes du mercredi" : "Notes";
+    document.querySelectorAll(".day-chip").forEach(c=>c.setAttribute("aria-pressed",c.dataset.day===day));
+  }
+  document.querySelectorAll(".day-chip").forEach(c=>c.addEventListener("click",()=>setDay(c.dataset.day)));
+
+  // ---- Date -> jour ----
+  const dateEl=document.getElementById("date");
+  const NAMES=["dimanche","lundi","mardi","mercredi","jeudi","vendredi","samedi"];
+  const MONTHS=["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
+  function fromDate(){
+    if(!dateEl.value)return;
+    const d=new Date(dateEl.value+"T00:00");
+    document.getElementById("fulldate").textContent=d.getDate()+" "+MONTHS[d.getMonth()]+" "+d.getFullYear();
+    const day=NAMES[d.getDay()]; if(THEME[day]) setDay(day);
+  }
+  dateEl.addEventListener("change",fromDate);
+
+  // ---- Simple / double ----
+  function setDouble(on){
+    document.body.classList.toggle("single",!on);
+    document.body.classList.toggle("double",on);
+    document.getElementById("dbl").checked=on;
+    document.getElementById("set-dbl").checked=on;
+  }
+  document.getElementById("dbl").addEventListener("change",e=>setDouble(e.target.checked));
+  document.getElementById("set-dbl").addEventListener("change",e=>setDouble(e.target.checked));
+
+  // ---- Libellés niveaux ----
+  document.getElementById("set-lvl1").addEventListener("input",e=>document.getElementById("lvl1-head").textContent=e.target.value);
+  document.getElementById("set-lvl2").addEventListener("input",e=>document.getElementById("lvl2-head").textContent=e.target.value);
+
+  // ---- Panneau paramètres ----
+  const drawer=document.getElementById("drawer"), backdrop=document.getElementById("backdrop");
+  function openDrawer(){drawer.classList.add("open");backdrop.classList.add("show");}
+  function closeDrawer(){drawer.classList.remove("open");backdrop.classList.remove("show");}
+  document.getElementById("settings-btn").addEventListener("click",openDrawer);
+  document.getElementById("close-drawer").addEventListener("click",closeDrawer);
+  backdrop.addEventListener("click",closeDrawer);
+
+  // couleurs paramétrables
+  const cs=document.getElementById("color-settings");
+  Object.entries(THEME).forEach(([day,t])=>{
+    const row=document.createElement("div");row.className="color-row";
+    row.innerHTML=`<span>${t.label}</span>
+      <label title="Fond"><input type="color" data-day="${day}" data-prop="bg" value="${t.bg}"></label>
+      <label title="Accent / texte"><input type="color" data-day="${day}" data-prop="accent" value="${t.accent}"></label>`;
+    cs.appendChild(row);
+  });
+  cs.addEventListener("input",e=>{
+    const i=e.target; if(i.type!=="color")return;
+    const day=i.dataset.day, prop=i.dataset.prop;
+    THEME[day][prop]=i.value;
+    if(prop==="accent") THEME[day].ink=i.value; // texte = accent
+    const cur=document.querySelector('.day-chip[aria-pressed="true"]');
+    if(cur && cur.dataset.day===day) applyTheme(THEME[day]);
+  });
+
+  // horaires paramétrables
+  document.getElementById("set-hours").value=DEFAULT_HOURS;
+  document.getElementById("apply-hours").addEventListener("click",()=>{
+    renderRows(parseHours(document.getElementById("set-hours").value));
+  });
+
+  // ---- Modèles (démo en mémoire de session) ----
+  const templates={};
+  const currentDay=()=>{const c=document.querySelector('.day-chip[aria-pressed="true"]');return c?c.dataset.day:"lundi";};
+  const snapshot=()=>{const d={};document.querySelectorAll("[data-k]").forEach(el=>d[el.dataset.k]=el.innerHTML);return d;};
+  document.getElementById("save").addEventListener("click",()=>{
+    templates[currentDay()]=snapshot();
+    alert("Modèle du "+currentDay()+" enregistré (démo en mémoire). Dans la vraie version, ce serait sauvegardé pour de bon.");
+  });
+  document.getElementById("load").addEventListener("click",()=>{
+    const t=templates[currentDay()];
+    if(!t){alert("Aucun modèle enregistré pour "+currentDay()+".");return;}
+    Object.entries(t).forEach(([k,v])=>{const el=document.querySelector('[data-k="'+CSS.escape(k)+'"]');if(el)el.innerHTML=v;});
+  });
+
+  document.getElementById("print").addEventListener("click",()=>window.print());
+
+  // Init
+  setDay("lundi");
+  const today=new Date(); dateEl.value=today.toISOString().slice(0,10); fromDate();
+</script>
+</body>
+</html>
