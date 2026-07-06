@@ -41,5 +41,6 @@ export function createDefaultSettings() {
     school: { line1: 'École Pierre Dumonteil', line2: 'année 2025-2026' },
     dayColors: structuredClone(DEFAULT_DAY_COLORS),
     hours: structuredClone(DEFAULT_HOURS),
+    printRectoVerso: false,
   }
 }

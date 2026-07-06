@@ -600,6 +600,12 @@ td {
     margin: 12mm;
   }
 
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    color-adjust: exact;
+  }
+
   body {
     background: #fff;
     padding: 0;
@@ -607,6 +613,7 @@ td {
 
   .toolbar,
   .hint,
+  .prefill-hint,
   .drawer,
   .backdrop {
     display: none !important;
@@ -618,5 +625,10 @@ td {
     border-radius: 0;
     max-width: none;
     padding: 0;
+  }
+
+  tr.page-break {
+    break-before: page;
+    page-break-before: always;
   }
 }

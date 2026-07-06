@@ -15,6 +15,7 @@ export default function JournalSheet({
   notes,
   onNotesChange,
   prefilled,
+  printRectoVerso,
 }) {
   return (
     <div className="sheet">
@@ -73,13 +74,24 @@ export default function JournalSheet({
               <col className="hour" />
             </colgroup>
             <tbody>
-              {hours.map((h) =>
-                h.kind === 'break' ? (
-                  <BandRow key={h.id} hour={h} />
+              {hours.map((h, i) => {
+                const pageBreakBefore =
+                  printRectoVerso &&
+                  i > 0 &&
+                  hours[i - 1].kind === 'break' &&
+                  hours[i - 1].label === 'Pause méridienne'
+                return h.kind === 'break' ? (
+                  <BandRow key={h.id} hour={h} pageBreakBefore={pageBreakBefore} />
                 ) : (
-                  <HourRow key={h.id} hour={h} data={rows[h.id]} onCellChange={onCellChange} />
-                ),
-              )}
+                  <HourRow
+                    key={h.id}
+                    hour={h}
+                    data={rows[h.id]}
+                    onCellChange={onCellChange}
+                    pageBreakBefore={pageBreakBefore}
+                  />
+                )
+              })}
             </tbody>
           </table>
 

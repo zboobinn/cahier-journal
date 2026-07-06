@@ -50,6 +50,8 @@ export default function SettingsDrawer({
   onToggleLevelMode,
   hours,
   onApplyHours,
+  printRectoVerso,
+  onTogglePrintRectoVerso,
 }) {
   const [hoursText, setHoursText] = useState(() => serializeHours(hours))
 
@@ -132,6 +134,23 @@ export default function SettingsDrawer({
           >
             Appliquer les horaires
           </button>
+        </section>
+
+        <section>
+          <h4>Impression</h4>
+          <label className="switch">
+            <input
+              type="checkbox"
+              checked={Boolean(printRectoVerso)}
+              onChange={(e) => onTogglePrintRectoVerso(e.target.checked)}
+            />
+            <span className="track"></span>
+            <span>Recto = matin / verso = après-midi</span>
+          </label>
+          <p className="tip">
+            Insère un saut de page avant le premier créneau de l'après-midi (après la pause
+            méridienne).
+          </p>
         </section>
       </aside>
     </>

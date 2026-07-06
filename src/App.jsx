@@ -144,6 +144,10 @@ function App() {
     reconcileHours(newHours)
   }
 
+  function handleTogglePrintRectoVerso(checked) {
+    setSettings((s) => ({ ...s, printRectoVerso: checked }))
+  }
+
   async function handleExport() {
     const data = await exportAll()
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
@@ -226,6 +230,7 @@ function App() {
         notes={notes}
         onNotesChange={setNotes}
         prefilled={prefilled}
+        printRectoVerso={settings.printRectoVerso}
       />
 
       <p className="hint">
@@ -243,6 +248,8 @@ function App() {
         onToggleLevelMode={handleToggleLevelMode}
         hours={settings.hours}
         onApplyHours={handleApplyHours}
+        printRectoVerso={settings.printRectoVerso}
+        onTogglePrintRectoVerso={handleTogglePrintRectoVerso}
       />
     </div>
   )
