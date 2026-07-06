@@ -3,8 +3,8 @@ import Toolbar from './components/Toolbar'
 import JournalSheet from './components/JournalSheet'
 import SettingsDrawer from './components/SettingsDrawer'
 import { createDefaultSettings, DAY_LABELS } from './data/defaults'
-import { getSettings, saveSettings, exportAll, importAll } from './storage/local'
-import { useJournal } from './hooks/useJournal'
+import { getSettings, saveSettings, getTemplates, saveTemplates, exportAll, importAll } from './storage/local'
+import { useJournal, hasContent } from './hooks/useJournal'
 
 const JS_DAY_TO_NAME = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi']
 const NAME_TO_JS_DAY = { lundi: 1, mardi: 2, mercredi: 3, jeudi: 4, vendredi: 5 }
@@ -62,6 +62,7 @@ const STATUS_LABEL = {
 function App() {
   const [settings, setSettings] = useState(createDefaultSettings)
   const [settingsLoaded, setSettingsLoaded] = useState(false)
+  const [templates, setTemplates] = useState({})
   const [date, setDate] = useState(todayIso)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const skipSettingsSaveRef = useRef(true)
@@ -70,11 +71,16 @@ function App() {
   const theme = settings.dayColors[weekday] || FALLBACK_THEME
   const dayLabel = DAY_LABELS[weekday] || capitalize(weekday)
 
-  const { rows, notes, setNotes, updateCell, reconcileHours, status } = useJournal(
-    date,
-    weekday,
-    settings.hours,
-  )
+  const {
+    rows,
+    notes,
+    setNotes,
+    updateCell,
+    reconcileHours,
+    loadTemplateData,
+    status,
+    prefilled,
+  } = useJournal(date, weekday, settings.hours, templates)
 
   // Chargement initial des réglages depuis IndexedDB.
   useEffect(() => {
@@ -100,6 +106,18 @@ function App() {
     const t = setTimeout(() => saveSettings(settings), SETTINGS_SAVE_DELAY)
     return () => clearTimeout(t)
   }, [settings, settingsLoaded])
+
+  // Chargement initial des modèles par jour depuis IndexedDB.
+  useEffect(() => {
+    let cancelled = false
+    getTemplates().then((t) => {
+      if (cancelled) return
+      setTemplates(t)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   function handleDayChipClick(day) {
     setDate((current) => getDateForWeekday(current, day))
@@ -137,6 +155,27 @@ function App() {
     URL.revokeObjectURL(url)
   }
 
+  function handleSaveTemplate() {
+    const updated = { ...templates, [weekday]: { rows, notes } }
+    setTemplates(updated)
+    saveTemplates(updated)
+  }
+
+  function handleLoadTemplate() {
+    const tmpl = templates[weekday]
+    if (!tmpl) {
+      window.alert(`Aucun modèle enregistré pour ${dayLabel}.`)
+      return
+    }
+    if (hasContent(rows, notes)) {
+      const ok = window.confirm(
+        `Écraser le contenu actuel du ${dayLabel} avec le modèle enregistré ?`,
+      )
+      if (!ok) return
+    }
+    loadTemplateData(tmpl)
+  }
+
   function handleImportFile(file) {
     const reader = new FileReader()
     reader.onload = async () => {
@@ -168,10 +207,13 @@ function App() {
         onExport={handleExport}
         onImportFile={handleImportFile}
         statusLabel={STATUS_LABEL[status]}
+        onSaveTemplate={handleSaveTemplate}
+        onLoadTemplate={handleLoadTemplate}
       />
 
       <JournalSheet
         dayLabel={dayLabel}
+        weekday={weekday}
         fullDate={formatFullDate(date)}
         school={settings.school}
         levelLabels={settings.levelLabels}
@@ -181,6 +223,7 @@ function App() {
         onCellChange={updateCell}
         notes={notes}
         onNotesChange={setNotes}
+        prefilled={prefilled}
       />
 
       <p className="hint">

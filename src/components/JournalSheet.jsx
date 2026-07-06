@@ -4,6 +4,7 @@ import NotesPanel from './NotesPanel'
 
 export default function JournalSheet({
   dayLabel,
+  weekday,
   fullDate,
   school,
   levelLabels,
@@ -13,6 +14,7 @@ export default function JournalSheet({
   onCellChange,
   notes,
   onNotesChange,
+  prefilled,
 }) {
   return (
     <div className="sheet">
@@ -32,6 +34,10 @@ export default function JournalSheet({
           journal
         </div>
       </div>
+
+      {prefilled && (
+        <p className="prefill-hint">Pré-rempli depuis le modèle du {weekday}.</p>
+      )}
 
       <div className="levels">
         <div className="spacer"></div>

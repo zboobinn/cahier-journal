@@ -15,6 +15,8 @@ export default function Toolbar({
   onExport,
   onImportFile,
   statusLabel,
+  onSaveTemplate,
+  onLoadTemplate,
 }) {
   const fileInputRef = useRef(null)
 
@@ -68,6 +70,16 @@ export default function Toolbar({
       )}
 
       <div className="group" style={{ marginLeft: 'auto' }}>
+        {weekday !== 'mercredi' && (
+          <>
+            <button type="button" className="btn" onClick={onSaveTemplate}>
+              Enregistrer comme modèle du {weekday}
+            </button>
+            <button type="button" className="btn" onClick={onLoadTemplate}>
+              Charger le modèle du {weekday}
+            </button>
+          </>
+        )}
         <button type="button" className="btn" onClick={onOpenSettings}>Paramètres</button>
         <button type="button" className="btn" onClick={onExport}>Exporter</button>
         <button type="button" className="btn" onClick={() => fileInputRef.current?.click()}>

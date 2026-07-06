@@ -233,6 +233,13 @@ input[type="date"] {
   margin-top: 2px;
 }
 
+.prefill-hint {
+  margin: -6px 0 12px;
+  font-size: .78rem;
+  color: var(--day-accent);
+  font-style: italic;
+}
+
 .levels {
   display: grid;
   grid-template-columns: 64px 1fr 1fr 64px;
