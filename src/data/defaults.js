@@ -42,5 +42,6 @@ export function createDefaultSettings() {
     dayColors: structuredClone(DEFAULT_DAY_COLORS),
     hours: structuredClone(DEFAULT_HOURS),
     printRectoVerso: false,
+    updatedAt: new Date(0).toISOString(),
   }
 }

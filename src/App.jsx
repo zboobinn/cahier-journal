@@ -5,6 +5,7 @@ import SettingsDrawer from './components/SettingsDrawer'
 import { createDefaultSettings, DAY_LABELS } from './data/defaults'
 import { getSettings, saveSettings, getTemplates, saveTemplates, exportAll, importAll } from './storage/local'
 import { useJournal, hasContent } from './hooks/useJournal'
+import { useGistSync } from './hooks/useGistSync'
 
 const JS_DAY_TO_NAME = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi']
 const NAME_TO_JS_DAY = { lundi: 1, mardi: 2, mercredi: 3, jeudi: 4, vendredi: 5 }
@@ -59,17 +60,37 @@ const STATUS_LABEL = {
   saved: 'Enregistré',
 }
 
+const SYNC_STATUS_LABEL = {
+  syncing: 'Synchronisation…',
+  synced: 'Synchronisé',
+  offline: 'Hors ligne',
+  error: 'Erreur',
+}
+
 function App() {
   const [settings, setSettings] = useState(createDefaultSettings)
   const [settingsLoaded, setSettingsLoaded] = useState(false)
   const [templates, setTemplates] = useState({})
   const [date, setDate] = useState(todayIso)
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [reloadKey, setReloadKey] = useState(0)
   const skipSettingsSaveRef = useRef(true)
 
   const weekday = getWeekday(date)
   const theme = settings.dayColors[weekday] || FALLBACK_THEME
   const dayLabel = DAY_LABELS[weekday] || capitalize(weekday)
+
+  // Après une fusion Gist, IndexedDB a pu changer sous nos pieds : on recharge
+  // réglages + modèles en mémoire et on force la relecture de l'entrée affichée.
+  async function handleSyncMerged() {
+    skipSettingsSaveRef.current = true
+    const [s, t] = await Promise.all([getSettings(), getTemplates()])
+    setSettings(s)
+    setTemplates(t)
+    setReloadKey((k) => k + 1)
+  }
+
+  const gistSync = useGistSync({ onMerged: handleSyncMerged })
 
   const {
     rows,
@@ -80,7 +101,7 @@ function App() {
     loadTemplateData,
     status,
     prefilled,
-  } = useJournal(date, weekday, settings.hours, templates)
+  } = useJournal(date, weekday, settings.hours, templates, reloadKey, gistSync.notifyChange)
 
   // Chargement initial des réglages depuis IndexedDB.
   useEffect(() => {
@@ -103,8 +124,11 @@ function App() {
       skipSettingsSaveRef.current = false
       return
     }
-    const t = setTimeout(() => saveSettings(settings), SETTINGS_SAVE_DELAY)
+    const t = setTimeout(() => {
+      saveSettings(settings).then(() => gistSync.notifyChange())
+    }, SETTINGS_SAVE_DELAY)
     return () => clearTimeout(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [settings, settingsLoaded])
 
   // Chargement initial des modèles par jour depuis IndexedDB.
@@ -119,12 +143,16 @@ function App() {
     }
   }, [])
 
+  function updateSettings(updater) {
+    setSettings((s) => ({ ...updater(s), updatedAt: new Date().toISOString() }))
+  }
+
   function handleDayChipClick(day) {
     setDate((current) => getDateForWeekday(current, day))
   }
 
   function handleDayColorChange(day, prop, value) {
-    setSettings((s) => {
+    updateSettings((s) => {
       const current = { ...s.dayColors[day], [prop]: value }
       if (prop === 'accent') current.ink = value
       return { ...s, dayColors: { ...s.dayColors, [day]: current } }
@@ -132,20 +160,20 @@ function App() {
   }
 
   function handleLevelLabelChange(key, value) {
-    setSettings((s) => ({ ...s, levelLabels: { ...s.levelLabels, [key]: value } }))
+    updateSettings((s) => ({ ...s, levelLabels: { ...s.levelLabels, [key]: value } }))
   }
 
   function handleToggleLevelMode(checked) {
-    setSettings((s) => ({ ...s, levelMode: checked ? 'double' : 'single' }))
+    updateSettings((s) => ({ ...s, levelMode: checked ? 'double' : 'single' }))
   }
 
   function handleApplyHours(newHours) {
-    setSettings((s) => ({ ...s, hours: newHours }))
+    updateSettings((s) => ({ ...s, hours: newHours }))
     reconcileHours(newHours)
   }
 
   function handleTogglePrintRectoVerso(checked) {
-    setSettings((s) => ({ ...s, printRectoVerso: checked }))
+    updateSettings((s) => ({ ...s, printRectoVerso: checked }))
   }
 
   async function handleExport() {
@@ -161,9 +189,9 @@ function App() {
 
   function handleSaveTemplate() {
     const templateData = weekday === 'mercredi' ? { notes } : { rows, notes }
-    const updated = { ...templates, [weekday]: templateData }
+    const updated = { ...templates, [weekday]: templateData, updatedAt: new Date().toISOString() }
     setTemplates(updated)
-    saveTemplates(updated)
+    saveTemplates(updated).then(() => gistSync.notifyChange())
   }
 
   function handleLoadTemplate() {
@@ -196,6 +224,10 @@ function App() {
     reader.readAsText(file)
   }
 
+  async function handleActivateSync(token, gistIdInput) {
+    await gistSync.activate(token, gistIdInput)
+  }
+
   return (
     <div
       className={`app${settings.levelMode === 'single' ? ' single' : ''}`}
@@ -215,6 +247,8 @@ function App() {
         statusLabel={STATUS_LABEL[status]}
         onSaveTemplate={handleSaveTemplate}
         onLoadTemplate={handleLoadTemplate}
+        syncStatusLabel={gistSync.configured ? SYNC_STATUS_LABEL[gistSync.status] : null}
+        syncErrorMessage={gistSync.errorMessage}
       />
 
       <JournalSheet
@@ -250,6 +284,11 @@ function App() {
         onApplyHours={handleApplyHours}
         printRectoVerso={settings.printRectoVerso}
         onTogglePrintRectoVerso={handleTogglePrintRectoVerso}
+        syncConfigured={gistSync.configured}
+        syncStatusLabel={SYNC_STATUS_LABEL[gistSync.status]}
+        syncErrorMessage={gistSync.errorMessage}
+        onActivateSync={handleActivateSync}
+        onDisableSync={gistSync.disable}
       />
     </div>
   )

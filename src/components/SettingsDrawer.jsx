@@ -52,8 +52,33 @@ export default function SettingsDrawer({
   onApplyHours,
   printRectoVerso,
   onTogglePrintRectoVerso,
+  syncConfigured,
+  syncStatusLabel,
+  syncErrorMessage,
+  onActivateSync,
+  onDisableSync,
 }) {
   const [hoursText, setHoursText] = useState(() => serializeHours(hours))
+  const [token, setToken] = useState('')
+  const [gistIdInput, setGistIdInput] = useState('')
+  const [activating, setActivating] = useState(false)
+
+  async function handleActivateClick() {
+    if (!token.trim()) {
+      window.alert('Merci de renseigner un token GitHub (scope « gist »).')
+      return
+    }
+    setActivating(true)
+    try {
+      await onActivateSync(token.trim(), gistIdInput.trim())
+      setToken('')
+      setGistIdInput('')
+    } catch (e) {
+      window.alert(`Impossible d'activer la synchro : ${e.message}`)
+    } finally {
+      setActivating(false)
+    }
+  }
 
   useEffect(() => {
     setHoursText(serializeHours(hours))
@@ -151,6 +176,56 @@ export default function SettingsDrawer({
             Insère un saut de page avant le premier créneau de l'après-midi (après la pause
             méridienne).
           </p>
+        </section>
+
+        <section>
+          <h4>Synchronisation (optionnelle)</h4>
+          {syncConfigured ? (
+            <>
+              <p className="tip">
+                Statut : <b>{syncStatusLabel}</b>
+                {syncStatusLabel === 'Erreur' && syncErrorMessage ? ` — ${syncErrorMessage}` : ''}
+              </p>
+              <button className="btn" style={{ width: '100%' }} onClick={onDisableSync}>
+                Désactiver la synchro
+              </button>
+            </>
+          ) : (
+            <>
+              <p className="tip">
+                Synchronise tes données entre plusieurs appareils via un Gist GitHub privé. Crée un
+                token classique sur github.com (scope <b>gist</b>) et colle-le ci-dessous. Laisse
+                « Gist ID » vide pour créer un nouveau Gist, ou renseigne l'id d'un Gist existant
+                pour rejoindre un appareil déjà synchronisé.
+              </p>
+              <div className="lblinput">
+                <label style={{ width: 66 }}>Token</label>
+                <input
+                  type="password"
+                  value={token}
+                  onChange={(e) => setToken(e.target.value)}
+                  placeholder="ghp_…"
+                />
+              </div>
+              <div className="lblinput">
+                <label style={{ width: 66 }}>Gist ID</label>
+                <input
+                  type="text"
+                  value={gistIdInput}
+                  onChange={(e) => setGistIdInput(e.target.value)}
+                  placeholder="vide = nouveau Gist"
+                />
+              </div>
+              <button
+                className="btn primary"
+                style={{ width: '100%' }}
+                disabled={activating}
+                onClick={handleActivateClick}
+              >
+                {activating ? 'Activation…' : 'Activer la synchro'}
+              </button>
+            </>
+          )}
         </section>
       </aside>
     </>

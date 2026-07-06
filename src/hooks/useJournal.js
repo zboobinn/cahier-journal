@@ -29,7 +29,7 @@ export function hasContent(rows, notes) {
 
 // Charge l'entrée de `date` (ou, à défaut, pré-remplit depuis le modèle du jour),
 // puis resauvegarde automatiquement (debounce) dès qu'un vrai changement est fait.
-export function useJournal(date, weekday, hours, templates) {
+export function useJournal(date, weekday, hours, templates, reloadKey, onSaved) {
   const [rows, setRows] = useState(() => buildRowsForHours(hours))
   const [notes, setNotes] = useState('')
   const [status, setStatus] = useState('loading') // loading | saving | saved
@@ -41,6 +41,8 @@ export function useJournal(date, weekday, hours, templates) {
   weekdayRef.current = weekday
   const templatesRef = useRef(templates)
   templatesRef.current = templates
+  const onSavedRef = useRef(onSaved)
+  onSavedRef.current = onSaved
   const skipAutosaveRef = useRef(true)
   const timeoutRef = useRef(null)
 
@@ -71,7 +73,7 @@ export function useJournal(date, weekday, hours, templates) {
     return () => {
       cancelled = true
     }
-  }, [date])
+  }, [date, reloadKey])
 
   useEffect(() => {
     if (skipAutosaveRef.current) {
@@ -81,9 +83,10 @@ export function useJournal(date, weekday, hours, templates) {
     setStatus('saving')
     if (timeoutRef.current) clearTimeout(timeoutRef.current)
     timeoutRef.current = setTimeout(() => {
-      saveEntry(date, { weekday, rows, notes, updatedAt: new Date().toISOString() }).then(() =>
-        setStatus('saved'),
-      )
+      saveEntry(date, { weekday, rows, notes, updatedAt: new Date().toISOString() }).then(() => {
+        setStatus('saved')
+        onSavedRef.current?.()
+      })
     }, AUTOSAVE_DELAY)
     return () => clearTimeout(timeoutRef.current)
     // eslint-disable-next-line react-hooks/exhaustive-deps

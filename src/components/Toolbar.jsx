@@ -17,6 +17,8 @@ export default function Toolbar({
   statusLabel,
   onSaveTemplate,
   onLoadTemplate,
+  syncStatusLabel,
+  syncErrorMessage,
 }) {
   const fileInputRef = useRef(null)
 
@@ -67,6 +69,16 @@ export default function Toolbar({
 
       {statusLabel && (
         <span className="cap" aria-live="polite">{statusLabel}</span>
+      )}
+
+      {syncStatusLabel && (
+        <span
+          className="cap"
+          aria-live="polite"
+          title={syncStatusLabel === 'Erreur' ? syncErrorMessage : undefined}
+        >
+          {syncStatusLabel}
+        </span>
       )}
 
       <div className="group" style={{ marginLeft: 'auto' }}>
