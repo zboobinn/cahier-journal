@@ -1,3 +1,4 @@
+import { useRef } from 'react'
 import { DAY_ORDER } from '../data/defaults'
 
 const DAY_SHORT = { lundi: 'Lun', mardi: 'Mar', mercredi: 'Mer', jeudi: 'Jeu', vendredi: 'Ven' }
@@ -11,7 +12,12 @@ export default function Toolbar({
   levelMode,
   onToggleLevelMode,
   onOpenSettings,
+  onExport,
+  onImportFile,
+  statusLabel,
 }) {
+  const fileInputRef = useRef(null)
+
   return (
     <div className="toolbar">
       <div className="group">
@@ -57,8 +63,27 @@ export default function Toolbar({
         </label>
       </div>
 
+      {statusLabel && (
+        <span className="cap" aria-live="polite">{statusLabel}</span>
+      )}
+
       <div className="group" style={{ marginLeft: 'auto' }}>
         <button type="button" className="btn" onClick={onOpenSettings}>Paramètres</button>
+        <button type="button" className="btn" onClick={onExport}>Exporter</button>
+        <button type="button" className="btn" onClick={() => fileInputRef.current?.click()}>
+          Importer
+        </button>
+        <input
+          type="file"
+          accept="application/json"
+          ref={fileInputRef}
+          style={{ display: 'none' }}
+          onChange={(e) => {
+            const file = e.target.files?.[0]
+            if (file) onImportFile(file)
+            e.target.value = ''
+          }}
+        />
         <button type="button" className="btn primary" onClick={() => window.print()}>Imprimer</button>
       </div>
     </div>

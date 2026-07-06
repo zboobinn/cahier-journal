@@ -1,8 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Toolbar from './components/Toolbar'
 import JournalSheet from './components/JournalSheet'
 import SettingsDrawer from './components/SettingsDrawer'
 import { createDefaultSettings, DAY_LABELS } from './data/defaults'
+import { getSettings, saveSettings, exportAll, importAll } from './storage/local'
+import { useJournal } from './hooks/useJournal'
 
 const JS_DAY_TO_NAME = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi']
 const NAME_TO_JS_DAY = { lundi: 1, mardi: 2, mercredi: 3, jeudi: 4, vendredi: 5 }
@@ -10,6 +12,7 @@ const MONTHS = [
   'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
   'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre',
 ]
+const SETTINGS_SAVE_DELAY = 600
 
 function isoToDate(iso) {
   return new Date(`${iso}T00:00`)
@@ -48,45 +51,58 @@ function capitalize(s) {
   return s.charAt(0).toUpperCase() + s.slice(1)
 }
 
-function emptyCell() {
-  return { matiere: '', objectif: '', materiel: '' }
-}
-
-function buildRowsForHours(hours, previous = {}) {
-  const rows = {}
-  hours
-    .filter((h) => h.kind === 'slot')
-    .forEach((h) => {
-      rows[h.id] = previous[h.id] || { n1: emptyCell(), n2: emptyCell() }
-    })
-  return rows
-}
-
 const FALLBACK_THEME = { bg: '#F3F0E8', accent: '#8A857C', ink: '#5E564A' }
+
+const STATUS_LABEL = {
+  loading: 'Chargement…',
+  saving: 'Enregistrement…',
+  saved: 'Enregistré',
+}
 
 function App() {
   const [settings, setSettings] = useState(createDefaultSettings)
+  const [settingsLoaded, setSettingsLoaded] = useState(false)
   const [date, setDate] = useState(todayIso)
-  const [rows, setRows] = useState(() => buildRowsForHours(createDefaultSettings().hours))
-  const [notes, setNotes] = useState('')
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const skipSettingsSaveRef = useRef(true)
 
   const weekday = getWeekday(date)
   const theme = settings.dayColors[weekday] || FALLBACK_THEME
   const dayLabel = DAY_LABELS[weekday] || capitalize(weekday)
 
+  const { rows, notes, setNotes, updateCell, reconcileHours, status } = useJournal(
+    date,
+    weekday,
+    settings.hours,
+  )
+
+  // Chargement initial des réglages depuis IndexedDB.
+  useEffect(() => {
+    let cancelled = false
+    getSettings().then((s) => {
+      if (cancelled) return
+      skipSettingsSaveRef.current = true
+      setSettings(s)
+      setSettingsLoaded(true)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  // Sauvegarde (debounce) des réglages à chaque modification.
+  useEffect(() => {
+    if (!settingsLoaded) return
+    if (skipSettingsSaveRef.current) {
+      skipSettingsSaveRef.current = false
+      return
+    }
+    const t = setTimeout(() => saveSettings(settings), SETTINGS_SAVE_DELAY)
+    return () => clearTimeout(t)
+  }, [settings, settingsLoaded])
+
   function handleDayChipClick(day) {
     setDate((current) => getDateForWeekday(current, day))
-  }
-
-  function handleCellChange(hourId, level, field, value) {
-    setRows((prev) => ({
-      ...prev,
-      [hourId]: {
-        ...prev[hourId],
-        [level]: { ...prev[hourId][level], [field]: value },
-      },
-    }))
   }
 
   function handleDayColorChange(day, prop, value) {
@@ -107,7 +123,32 @@ function App() {
 
   function handleApplyHours(newHours) {
     setSettings((s) => ({ ...s, hours: newHours }))
-    setRows((prev) => buildRowsForHours(newHours, prev))
+    reconcileHours(newHours)
+  }
+
+  async function handleExport() {
+    const data = await exportAll()
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `cahier-journal-${todayIso()}.json`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  function handleImportFile(file) {
+    const reader = new FileReader()
+    reader.onload = async () => {
+      try {
+        const data = JSON.parse(reader.result)
+        await importAll(data)
+        window.location.reload()
+      } catch {
+        window.alert("Le fichier importé n'est pas valide.")
+      }
+    }
+    reader.readAsText(file)
   }
 
   return (
@@ -124,6 +165,9 @@ function App() {
         levelMode={settings.levelMode}
         onToggleLevelMode={handleToggleLevelMode}
         onOpenSettings={() => setSettingsOpen(true)}
+        onExport={handleExport}
+        onImportFile={handleImportFile}
+        statusLabel={STATUS_LABEL[status]}
       />
 
       <JournalSheet
@@ -134,7 +178,7 @@ function App() {
         onLevelLabelChange={handleLevelLabelChange}
         hours={settings.hours}
         rows={rows}
-        onCellChange={handleCellChange}
+        onCellChange={updateCell}
         notes={notes}
         onNotesChange={setNotes}
       />
