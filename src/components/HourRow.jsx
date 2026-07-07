@@ -1,6 +1,6 @@
 import TeachingCell from './TeachingCell'
 
-export default function HourRow({ hour, data, onCellChange, pageBreakBefore }) {
+export default function HourRow({ hour, data, double, onCellChange, pageBreakBefore }) {
   const hourLabel = (
     <div>
       {hour.start}
@@ -18,12 +18,14 @@ export default function HourRow({ hour, data, onCellChange, pageBreakBefore }) {
           onChange={(field, value) => onCellChange(hour.id, 'n1', field, value)}
         />
       </td>
-      <td className="teach lvl2">
-        <TeachingCell
-          value={data.n2}
-          onChange={(field, value) => onCellChange(hour.id, 'n2', field, value)}
-        />
-      </td>
+      {double && (
+        <td className="teach lvl2">
+          <TeachingCell
+            value={data.n2}
+            onChange={(field, value) => onCellChange(hour.id, 'n2', field, value)}
+          />
+        </td>
+      )}
       <td className="hour-cell">{hourLabel}</td>
     </tr>
   )

@@ -395,11 +395,6 @@ td {
   grid-template-columns: 64px 1fr 64px;
 }
 
-.app.single .lvl2,
-.app.single .n2head {
-  display: none;
-}
-
 .notes {
   margin-top: 16px;
   background: #fff;

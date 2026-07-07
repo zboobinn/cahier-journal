@@ -9,6 +9,7 @@ export default function JournalSheet({
   school,
   levelLabels,
   onLevelLabelChange,
+  levelMode,
   hours,
   rows,
   onCellChange,
@@ -17,6 +18,7 @@ export default function JournalSheet({
   prefilled,
   printRectoVerso,
 }) {
+  const double = levelMode !== 'single'
   return (
     <div className="sheet">
       <div className="sheet-head">
@@ -57,12 +59,14 @@ export default function JournalSheet({
               onChange={(e) => onLevelLabelChange('n1', e.target.value)}
               aria-label="Nom du niveau 1"
             />
-            <input
-              className="level-h lvl2 n2head"
-              value={levelLabels.n2}
-              onChange={(e) => onLevelLabelChange('n2', e.target.value)}
-              aria-label="Nom du niveau 2"
-            />
+            {double && (
+              <input
+                className="level-h lvl2"
+                value={levelLabels.n2}
+                onChange={(e) => onLevelLabelChange('n2', e.target.value)}
+                aria-label="Nom du niveau 2"
+              />
+            )}
             <div className="spacer"></div>
           </div>
 
@@ -70,7 +74,7 @@ export default function JournalSheet({
             <colgroup>
               <col className="hour" />
               <col />
-              <col className="lvl2" />
+              {double && <col className="lvl2" />}
               <col className="hour" />
             </colgroup>
             <tbody>
@@ -81,12 +85,18 @@ export default function JournalSheet({
                   hours[i - 1].kind === 'break' &&
                   hours[i - 1].label === 'Pause méridienne'
                 return h.kind === 'break' ? (
-                  <BandRow key={h.id} hour={h} pageBreakBefore={pageBreakBefore} />
+                  <BandRow
+                    key={h.id}
+                    hour={h}
+                    double={double}
+                    pageBreakBefore={pageBreakBefore}
+                  />
                 ) : (
                   <HourRow
                     key={h.id}
                     hour={h}
                     data={rows[h.id]}
+                    double={double}
                     onCellChange={onCellChange}
                     pageBreakBefore={pageBreakBefore}
                   />

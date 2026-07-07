@@ -42,6 +42,8 @@ function parseHoursText(text) {
 export default function SettingsDrawer({
   open,
   onClose,
+  school,
+  onSchoolChange,
   dayColors,
   onDayColorChange,
   levelLabels,
@@ -90,6 +92,26 @@ export default function SettingsDrawer({
       <aside className={`drawer${open ? ' open' : ''}`} aria-label="Paramètres" aria-hidden={!open}>
         <button className="close" aria-label="Fermer" onClick={onClose}>✕</button>
         <h2>Paramètres</h2>
+
+        <section>
+          <h4>En-tête</h4>
+          <div className="lblinput">
+            <label style={{ width: 66 }}>Ligne 1</label>
+            <input
+              type="text"
+              value={school.line1}
+              onChange={(e) => onSchoolChange('line1', e.target.value)}
+            />
+          </div>
+          <div className="lblinput">
+            <label style={{ width: 66 }}>Ligne 2</label>
+            <input
+              type="text"
+              value={school.line2}
+              onChange={(e) => onSchoolChange('line2', e.target.value)}
+            />
+          </div>
+        </section>
 
         <section>
           <h4>Couleurs des jours</h4>

@@ -1,4 +1,4 @@
-export default function BandRow({ hour, pageBreakBefore }) {
+export default function BandRow({ hour, double, pageBreakBefore }) {
   return (
     <tr className={`band${pageBreakBefore ? ' page-break' : ''}`}>
       <td className="hour-cell">
@@ -6,7 +6,7 @@ export default function BandRow({ hour, pageBreakBefore }) {
         <br />
         {hour.end}
       </td>
-      <td colSpan={2}>{hour.label}</td>
+      <td colSpan={double ? 2 : 1}>{hour.label}</td>
       <td className="hour-cell">
         {hour.start}
         <br />

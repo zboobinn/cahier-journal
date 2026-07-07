@@ -159,6 +159,10 @@ function App() {
     })
   }
 
+  function handleSchoolChange(key, value) {
+    updateSettings((s) => ({ ...s, school: { ...s.school, [key]: value } }))
+  }
+
   function handleLevelLabelChange(key, value) {
     updateSettings((s) => ({ ...s, levelLabels: { ...s.levelLabels, [key]: value } }))
   }
@@ -258,6 +262,7 @@ function App() {
         school={settings.school}
         levelLabels={settings.levelLabels}
         onLevelLabelChange={handleLevelLabelChange}
+        levelMode={settings.levelMode}
         hours={settings.hours}
         rows={rows}
         onCellChange={updateCell}
@@ -274,6 +279,8 @@ function App() {
       <SettingsDrawer
         open={settingsOpen}
         onClose={() => setSettingsOpen(false)}
+        school={settings.school}
+        onSchoolChange={handleSchoolChange}
         dayColors={settings.dayColors}
         onDayColorChange={handleDayColorChange}
         levelLabels={settings.levelLabels}
